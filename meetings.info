@@ -1,0 +1,7 @@
+; $Id$
+name = Meetings
+description = Content type for adding meeting minutes
+dependencies[] = content
+dependencies[] = text
+dependencies[] = userreference
+core = 6.x

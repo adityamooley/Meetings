@@ -1,0 +1,61 @@
+<?php
+// $Id: $
+/**
+ * Implementation of hook_install
+ */
+function meetings_install() {
+	_meetings_save_cck_node();
+}
+function _meetings_save_cck_node() {
+	module_load_include('inc', 'meetings', 'meetings.schema');
+	$content = _meetings_cck_export();
+	require_once './' . drupal_get_path('module', 'content') .  '/modules/content_copy/content_copy.module';
+	require_once './' . drupal_get_path('module', 'alternate_content_copy') .  '/alternate_content_copy.module';
+	alternate_content_copy_import_content($content);
+}
+
+/**
+* Implementation of hook_requirements()
+*/
+function meetings_requirements($phase) {
+	$requirements = array();
+	$t = get_t();
+	// an array of the dependencies
+	// where the array key is the module machine-readable name
+	// and the value is the module human-readable name
+	$dependencies = array(
+		'content' => 'Content',
+		'date' => 'Date',
+		'userreference' => 'UserReference',
+		'text' => 'Text',
+	);
+	switch ($phase) {
+		case 'install':
+			$error = FALSE;
+			$value = '';
+			foreach ($dependencies as $dependency => $name) {
+				if (!module_exists($dependency)) {
+					$error = TRUE;
+					$value .= $t($name . " to be pre-installed; ");
+					$severity = REQUIREMENT_ERROR;
+				}
+			}
+			if ($error) {
+				$requirements['example_cck_content'] = array(
+				  'title' => $t('Meetings requires: '),
+				  'value' => $value . $t(' if the required modules are now installed, please enable this module again.'),
+				  'severity' => $severity,
+				);
+			}
+		break;
+	}
+	return $requirements;
+}
+
+/**
+ * Implementation of hook_uninstall
+ */
+function meetings_uninstall() {
+	node_type_delete('meetings');
+	menu_rebuild();
+}
